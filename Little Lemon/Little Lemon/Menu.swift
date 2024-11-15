@@ -11,27 +11,55 @@ struct Menu: View {
     @Environment(\.managedObjectContext) private var viewContext
     
     @State var searchText = ""
+    @State var startersEnabled = true
+    @State var mainsEnabled = true
+    @State var dessertsEnabled = true
+    @State var drinksEnabled = true
     
     var body: some View {
         VStack{
-            Text("Little Lemon Restaurant");
-            Text("Chicago");
-            Text("Your local restaurant serving fresh Mediterranean food!");
+            HeaderComponent()
             
-            TextField("Search menu", text: $searchText)
-                                    .textFieldStyle(.roundedBorder)
+            VStack{
+                HeroSection()
+                .onAppear(){
+                    getMenuData(viewContext: viewContext);
+                }
+                
+
+                TextField("Search menu", text: $searchText)
+                    .textFieldStyle(.roundedBorder)
+            }
             
-            FetchedObjects(predicate: buildPredicate(), sortDescriptors: buildSortDescriptors()) {
-                                (dishes: [Dish]) in
-                                List(dishes) { dish in
-                                    Text("Item: \(dish.title!) - Price: \(dish.price!)")
-                                }
-                                .listStyle(.plain)
-                            }
-            
-        }.onAppear(){
-            getMenuData(viewContext: viewContext);
+            VStack{
+                
+                Text("ORDER FOR DELIVERY!")
+                    .font(.sectionTitle())
+                    .foregroundColor(.highlightColor2)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.top)
+                    .padding(.leading)
+                
+                HStack(spacing: 20) {
+                    Toggle("Starters", isOn: $startersEnabled)
+                    Toggle("Mains", isOn: $mainsEnabled)
+                    Toggle("Desserts", isOn: $dessertsEnabled)
+                    Toggle("Drinks", isOn: $drinksEnabled)
+
+                }
+                .toggleStyle(MyToggleStyle())
+                .toggleStyle(.button)
+                
+                FetchedObjects(predicate: buildPredicate(), sortDescriptors: buildSortDescriptors()) {
+                    (dishes: [Dish]) in
+                    List(dishes) { dish in
+                        ListItem(dish: dish)
+                    }.listStyle(PlainListStyle())
+                    
+                }
+            }
         }
+        
     }
     
     func buildSortDescriptors() -> [NSSortDescriptor] {
@@ -43,8 +71,13 @@ struct Menu: View {
 
     func buildPredicate() -> NSPredicate {
         let search = searchText == "" ? NSPredicate(value: true) : NSPredicate(format: "title CONTAINS[cd] %@", searchText)
-        
-        return search
+        let starters = !startersEnabled ? NSPredicate(format: "category != %@", "starters") : NSPredicate(value: true)
+        let mains = !mainsEnabled ? NSPredicate(format: "category != %@", "mains") : NSPredicate(value: true)
+        let desserts = !dessertsEnabled ? NSPredicate(format: "category != %@", "desserts") : NSPredicate(value: true)
+        let drinks = !drinksEnabled ? NSPredicate(format: "category != %@", "drinks") : NSPredicate(value: true)
+
+        let compoundPredicate = NSCompoundPredicate(andPredicateWithSubpredicates: [search, starters, mains, desserts, drinks])
+        return compoundPredicate
         }
 }
 
