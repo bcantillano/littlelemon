@@ -24,10 +24,19 @@ struct Onboarding: View {
             VStack {
                 NavigationLink("",destination: Home(), isActive: $isLoggedIn)
                 
-                TextField("First Name", text: $firstName)
-                TextField("Last Name", text: $lastName)
-                TextField("Email", text: $email)
-                Button("Registration", action: {
+                Image("Logo")
+                HeroSection()
+                
+                VStack{
+                    TextField("First Name", text: $firstName)
+                    TextField("Last Name", text: $lastName)
+                    TextField("Email", text: $email)
+                }
+                .textFieldStyle(.roundedBorder)
+                .disableAutocorrection(true)
+                .padding()
+                Spacer(minLength:300)
+                Button("Register", action: {
                     if !firstName.isEmpty
                         && !lastName.isEmpty
                         && !email.isEmpty{
@@ -37,7 +46,7 @@ struct Onboarding: View {
                         isLoggedIn = true;
                         UserDefaults.standard.set(true, forKey: kIsLoggedIn)
                     }
-                }).background(Color.gray)
+                }).buttonStyle(ButtonStyleYellowColorWide())
             }.onAppear(){
                 if UserDefaults.standard.bool(forKey: "kIsLoggedIn"){
                     isLoggedIn = true;
